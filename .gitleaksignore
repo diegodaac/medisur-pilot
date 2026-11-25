@@ -1,0 +1,11 @@
+# Falsos positivos de gitleaks revisados a mano (2026-11-25).
+# Regla curl-auth-user en infra/sonar-quality-gate.sh: la función que llama a la
+# API de SonarQube autentica con la variable de entorno SONAR_TOKEN, que se lee
+# en tiempo de ejecución; no hay ningún valor escrito en el archivo ni en el historial.
+# (No se cita aquí la línea exacta: el propio comentario dispararía la regla.)
+# Formato: <commit>:<archivo>:<regla>:<línea>
+ed5f6b1ffdb2cbc13849afc7cbf59532b4d97ea6:infra/sonar-quality-gate.sh:curl-auth-user:17
+f2ad68ed9127e4e6686df290717df0f88a9d9e83:infra/sonar-quality-gate.sh:curl-auth-user:21
+# La primera versión de este mismo archivo citaba la línea en un comentario y gitleaks
+# la detectó (texto explicativo, no un secreto). Se corrigió en el commit siguiente.
+d68fae9b97c17d2fbf63e076a3c6529f9bc52a4b:.gitleaksignore:curl-auth-user:2
