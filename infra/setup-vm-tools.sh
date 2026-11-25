@@ -9,18 +9,20 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 KUBECTL_VERSION="v1.35.6"   # misma versión que MicroK8s en VM-K8S (política de desfase ±1)
 
-echo ">> Paquetes base, Java 17, Docker y jq"
-apt-get update -y
-apt-get install -y ca-certificates curl gnupg git jq fontconfig openjdk-17-jre docker.io docker-compose-v2
-systemctl enable --now docker
-
-echo ">> Repositorio e instalación de Jenkins (LTS, nativo)"
+# El repositorio de Jenkins se configura ANTES del primer `apt-get update`: si quedara
+# una configuración vieja (p. ej. con una llave caducada), el update fallaría de entrada.
+# curl ya viene en la imagen de Ubuntu Server.
+echo ">> Repositorio de Jenkins (LTS, nativo)"
 install -d -m 0755 /usr/share/keyrings
 # Llave de firma vigente del repositorio (la de 2023 ya no firma; huella ...7198F4B714ABFC68).
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key -o /usr/share/keyrings/jenkins-keyring.asc
 echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
   > /etc/apt/sources.list.d/jenkins.list
+
+echo ">> Paquetes base, Java 17, Docker, jq y Jenkins"
 apt-get update -y
+apt-get install -y ca-certificates curl gnupg git jq fontconfig openjdk-17-jre docker.io docker-compose-v2
+systemctl enable --now docker
 apt-get install -y jenkins
 # Jenkins ejecuta `docker build/run` desde el pipeline.
 usermod -aG docker jenkins
