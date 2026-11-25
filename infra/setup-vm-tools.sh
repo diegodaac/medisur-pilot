@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepara VM-TOOLS (Ubuntu 22.04): Docker, Java, Jenkins nativo, kubectl, jq,
+# Prepara VM-TOOLS (Ubuntu 22.04): Docker, Java 21, Jenkins nativo, kubectl, jq,
 # parámetro del kernel para SonarQube y node_exporter.
 # Ejecutar por SSH (instalación de herramientas) con:  sudo ./infra/setup-vm-tools.sh
 # Idempotente: se puede repetir sin romper nada.
@@ -19,9 +19,11 @@ curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key -o /usr/shar
 echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
   > /etc/apt/sources.list.d/jenkins.list
 
-echo ">> Paquetes base, Java 17, Docker, jq y Jenkins"
+echo ">> Paquetes base, Java 21, Docker, jq y Jenkins"
 apt-get update -y
-apt-get install -y ca-certificates curl gnupg git jq fontconfig openjdk-17-jre docker.io docker-compose-v2
+# Jenkins LTS 2.5xx exige Java 21 o 25 (con Java 17 el servicio no arranca).
+apt-get install -y ca-certificates curl gnupg git jq fontconfig openjdk-21-jre-headless docker.io docker-compose-v2
+update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java
 systemctl enable --now docker
 apt-get install -y jenkins
 # Jenkins ejecuta `docker build/run` desde el pipeline.
