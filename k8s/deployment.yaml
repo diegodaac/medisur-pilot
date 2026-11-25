@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medisur-api
+  namespace: medisur
+  labels:
+    app: medisur-api
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5          # permite `kubectl rollout undo`
+  selector:
+    matchLabels:
+      app: medisur-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0            # nunca bajar de 2 pods listos durante la actualización
+      maxSurge: 1                  # crea 1 pod nuevo a la vez
+  template:
+    metadata:
+      labels:
+        app: medisur-api
+    spec:
+      # Si el paquete de GHCR es privado, Jenkins crea este Secret en cada despliegue.
+      # Si es público, el Secret sobra y no estorba.
+      imagePullSecrets:
+        - name: ghcr-pull
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          # __IMAGE__ lo sustituye Jenkins por ghcr.io/<usuario>/medisur-pilot:<VERSION>-<sha>
+          # (nunca se usa la etiqueta latest).
+          image: __IMAGE__
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: medisur-api-config
+            - secretRef:
+                name: medisur-api-secret
+          readinessProbe:          # ¿puede recibir tráfico? -> /ready (503 durante el retardo)
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:           # ¿el proceso sigue vivo? -> /health
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
