@@ -41,5 +41,6 @@ UNIT
 systemctl daemon-reload
 systemctl enable --now node_exporter
 sleep 1
-curl -fsS http://localhost:9100/metrics | head -n 3
+# Sin `| head`: con pipefail, cortar la tubería hace que curl salga con código 23.
+curl -fsS -o /dev/null http://localhost:9100/metrics
 echo ">> node_exporter activo en :9100"
