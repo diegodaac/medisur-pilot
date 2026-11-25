@@ -21,7 +21,7 @@ Orden alineado con las fases de `CLAUDE.md`. Todo lo que dice **(a mano)** lo ha
 1. Copiar el repo a la VM (`git clone`) y ejecutar `sudo ./infra/setup-vm-tools.sh`.
 2. SonarQube: `cd infra/sonarqube && cp env.example .env` **(editar contraseña a mano)** `&& docker compose up -d`. Entrar a `:9000`, cambiar la contraseña `admin`, generar un token **(a mano)**.
 3. Quality Gate propio: `export SONAR_URL=http://localhost:9000; read -rs SONAR_TOKEN; export SONAR_TOKEN; ./infra/sonar-quality-gate.sh`.
-4. Webhook de SonarQube (Administration → Configuration → Webhooks): `http://localhost:8080/sonarqube-webhook/`.
+4. Webhook de SonarQube (Administration → Configuration → Webhooks): `http://172.16.0.5:8080/sonarqube-webhook/`. **No** `localhost`: SonarQube corre en un contenedor y ahí `localhost` es el propio contenedor, no Jenkins.
 5. Jenkins (`:8080`): instalar plugins sugeridos más: *Pipeline*, *GitHub Branch Source*, *SonarQube Scanner*, *Prometheus metrics*, *Timestamper*, *Credentials Binding*.
 6. Manage Jenkins → Tools: SonarQube Scanner con nombre **`sonar-scanner`** (instalación automática).
 7. Manage Jenkins → System: servidor SonarQube con nombre **`sonarqube`**, URL `http://localhost:9000` y token como credencial *Secret text*.
