@@ -1,0 +1,76 @@
+// Diagrama de arquitectura del piloto MediSur.
+// Regenerar:  dot -Tpng -Gdpi=200 docs/arquitectura.dot -o docs/arquitectura.png
+digraph medisur {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=12, nodesep=0.35, ranksep=0.55, pad=0.3, newrank=true, compound=true, splines=true];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#5B6B7F", penwidth=1.2, margin="0.12,0.06"];
+  edge  [fontname="Helvetica", fontsize=8.5, color="#4A5568", arrowsize=0.7];
+
+  dev     [label="Desarrollador\n(laptop)", shape=box, fillcolor="#EEF2F7"];
+  github  [label="GitHub\ndiegodaac/medisur-pilot\n(main protegida + PR)", fillcolor="#F3E8FF", color="#7C3AED"];
+  ghcr    [label="GHCR\nghcr.io/diegodaac/medisur-pilot\n<VERSION>-<sha>  |  <sha>", fillcolor="#F3E8FF", color="#7C3AED"];
+  discord [label="Discord\n#alertas", fillcolor="#F3E8FF", color="#7C3AED"];
+
+  subgraph cluster_azure {
+    label="Azure for Students · mexicocentral · VNet 172.16.0.0/16"; labeljust=l; fontsize=11;
+    style="rounded,dashed"; color="#2563EB"; fontcolor="#1E40AF";
+
+    subgraph cluster_tools {
+      label="VM-TOOLS  ·  Standard_B4as_v2  ·  172.16.0.5"; labeljust=l; style="rounded,filled"; fillcolor="#EFF6FF"; color="#3B82F6";
+      jenkins [label="Jenkins 2.580.3\nMultibranch Pipeline\n(Jenkinsfile del repo)", fillcolor="#DBEAFE", color="#1D4ED8"];
+      sonar   [label="SonarQube 10.7\n+ PostgreSQL 16\nQuality Gate MediSur", fillcolor="#DBEAFE"];
+      docker  [label="Docker 29\n(build, Hadolint,\ngitleaks, Trivy)", fillcolor="#DBEAFE"];
+      prom    [label="Prometheus\nretención 15 d", fillcolor="#FEF3C7", color="#D97706"];
+      am      [label="Alertmanager", fillcolor="#FEF3C7", color="#D97706"];
+      graf    [label="Grafana\n2 tableros", fillcolor="#FEF3C7", color="#D97706"];
+      bb      [label="blackbox\nexporter", fillcolor="#FEF3C7", color="#D97706"];
+      net     [label="node_exporter :9100", fillcolor="#FEF3C7", color="#D97706"];
+    }
+
+    subgraph cluster_k8s {
+      label="VM-K8S  ·  Standard_B2as_v2  ·  172.16.0.4"; labeljust=l; style="rounded,filled"; fillcolor="#ECFDF5"; color="#10B981";
+      api  [label="MicroK8s 1.35 API\n:16443 (RBAC)", fillcolor="#D1FAE5", color="#047857"];
+      subgraph cluster_ns {
+        label="namespace medisur"; labeljust=l; style="rounded"; color="#059669";
+        svc  [label="Service NodePort\n:30080", fillcolor="#D1FAE5"];
+        dep  [label="Deployment medisur-api\n2 réplicas · RollingUpdate\nliveness /health · readiness /ready", fillcolor="#A7F3D0", color="#047857"];
+        cm   [label="ConfigMap +\nSecret", fillcolor="#D1FAE5"];
+      }
+      ksm  [label="kube-state-metrics\nNodePort :30808", fillcolor="#FEF3C7", color="#D97706"];
+      nek  [label="node_exporter :9100", fillcolor="#FEF3C7", color="#D97706"];
+    }
+  }
+
+  // Flujo de entrega (azul)
+  dev    -> github  [label="push / PR", color="#1D4ED8", penwidth=1.6];
+  github -> jenkins [label="webhook", color="#1D4ED8", penwidth=1.6];
+  jenkins -> sonar  [label="análisis +\nquality gate", color="#1D4ED8"];
+  sonar  -> jenkins [label="webhook\nveredicto", style=dashed, color="#1D4ED8"];
+  jenkins -> docker [label="build / scan", color="#1D4ED8"];
+  docker -> ghcr    [label="push (solo si\npasa CI)", color="#1D4ED8", penwidth=1.6];
+  jenkins -> api    [label="kubectl set image\nrollout status (solo main)", color="#1D4ED8", penwidth=1.6];
+  api    -> dep     [color="#047857"];
+  ghcr   -> dep     [label="pull\n(imagePullSecret)", style=dashed, color="#7C3AED"];
+  cm     -> dep     [style=dotted, arrowhead=none, color="#047857"];
+  svc    -> dep     [color="#047857"];
+  jenkins -> svc    [label="prueba de humo\ncurl /health /version", style=dashed, color="#1D4ED8"];
+
+  // Flujo de observabilidad (naranja)
+  prom -> net  [label="scrape", color="#D97706"];
+  prom -> nek  [label="scrape", color="#D97706"];
+  prom -> ksm  [label="scrape", color="#D97706"];
+  prom -> api  [label="pods y cAdvisor vía proxy\n(SA solo lectura)", color="#D97706"];
+  prom -> bb   [label="probes", color="#D97706"];
+  prom -> am   [label="alertas", color="#D97706"];
+  am   -> discord [label="notifica", color="#D97706", penwidth=1.6];
+  graf -> prom [label="consulta", color="#D97706"];
+
+  // Leyenda
+  subgraph cluster_leyenda {
+    label="Leyenda"; labeljust=l; style="rounded"; color="#9CA3AF"; fontsize=10;
+    l1 [label="Entrega continua", shape=plaintext, fillcolor="none", style="", fontcolor="#1D4ED8"];
+    l2 [label="Observabilidad", shape=plaintext, fillcolor="none", style="", fontcolor="#D97706"];
+    l3 [label="Servicio externo", shape=plaintext, fillcolor="none", style="", fontcolor="#7C3AED"];
+    l4 [label="Kubernetes", shape=plaintext, fillcolor="none", style="", fontcolor="#047857"];
+    l1 -> l2 -> l3 -> l4 [style=invis];
+  }
+}
