@@ -1,8 +1,8 @@
 // =============================================================================
 // Jenkinsfile — Pipeline declarativo de MediSur (Multibranch Pipeline)
 //
-//   CI (todas las ramas y PR): checkout -> pruebas -> SonarQube -> Quality Gate
-//                              -> docker build -> push a GHCR
+//   CI (todas las ramas y PR): checkout -> [Hadolint | gitleaks] -> pruebas -> SonarQube
+//                              -> Quality Gate -> docker build -> Trivy -> push a GHCR
 //   CD (SOLO rama main):       secretos/manifiestos -> set image -> rollout status
 //                              -> prueba de humo -> (si falla) rollout undo
 //
@@ -41,6 +41,10 @@ pipeline {
     PY_IMAGE   = 'python:3.12-slim'                 // imagen donde corren las pruebas (Python 3.12 igual que producción)
     K8S_NS     = 'medisur'
     DEPLOYMENT = 'medisur-api'
+    // Herramientas de seguridad (extras), en contenedores con versión fijada: nada que instalar en la VM.
+    HADOLINT_IMAGE = 'hadolint/hadolint:v2.15.1'
+    GITLEAKS_IMAGE = 'zricethezav/gitleaks:v8.30.1'
+    TRIVY_IMAGE    = 'aquasec/trivy:0.76.2'
   }
 
   stages {
@@ -57,6 +61,27 @@ pipeline {
           // Etiquetas: <VERSION>-<sha> y <sha>. NUNCA 'latest'.
           env.TAG_FULL = "${env.APP_VERSION}-${env.GIT_SHA_SHORT}"
           echo "Rama=${env.BRANCH_NAME} versión=${env.APP_VERSION} sha=${env.GIT_SHA_SHORT} etiqueta=${env.TAG_FULL}"
+        }
+      }
+    }
+
+    // ---- Extra: seguridad estática, en paralelo (no dependen una de otra) ----
+    stage('Seguridad estática') {
+      parallel {
+        // Hadolint revisa el Dockerfile contra buenas prácticas. Falla solo con
+        // errores; las advertencias se muestran en el log sin detener el build.
+        stage('Hadolint (Dockerfile)') {
+          steps {
+            sh 'docker run --rm -i "$HADOLINT_IMAGE" hadolint --failure-threshold error - < Dockerfile'
+          }
+        }
+        // gitleaks busca secretos en TODO el historial de git (no solo en el commit
+        // actual). Si encuentra uno, el build se detiene. --redact evita que el
+        // valor aparezca en el log. Los falsos positivos revisados están en .gitleaksignore.
+        stage('gitleaks (secretos)') {
+          steps {
+            sh 'docker run --rm -v "$WORKSPACE:/repo:ro" "$GITLEAKS_IMAGE" git --redact --no-banner --exit-code 1 /repo'
+          }
         }
       }
     }
@@ -122,6 +147,21 @@ pipeline {
             -t "$IMAGE_REPO:$TAG_FULL" \
             -t "$IMAGE_REPO:$GIT_SHA_SHORT" \
             .
+        '''
+      }
+    }
+
+    // ---- Extra: escaneo de vulnerabilidades de la imagen ANTES de publicarla ----
+    // Trivy revisa paquetes del sistema y librerías de Python. Bloquea solo las
+    // CRITICAL que ya tienen parche (--ignore-unfixed): si existe arreglo, no se
+    // publica la imagen. Las HIGH se reportan sin bloquear, para revisarlas.
+    // La base de datos de vulnerabilidades se guarda en el volumen trivy-cache.
+    stage('Escaneo de imagen (Trivy)') {
+      steps {
+        sh '''
+          TRIVY="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache $TRIVY_IMAGE"
+          $TRIVY image --quiet --no-progress --ignore-unfixed --severity HIGH --exit-code 0 "$IMAGE_REPO:$TAG_FULL"
+          $TRIVY image --quiet --no-progress --ignore-unfixed --severity CRITICAL --exit-code 1 "$IMAGE_REPO:$TAG_FULL"
         '''
       }
     }
