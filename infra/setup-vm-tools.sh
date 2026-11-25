@@ -16,7 +16,8 @@ systemctl enable --now docker
 
 echo ">> Repositorio e instalación de Jenkins (LTS, nativo)"
 install -d -m 0755 /usr/share/keyrings
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key -o /usr/share/keyrings/jenkins-keyring.asc
+# Llave de firma vigente del repositorio (la de 2023 ya no firma; huella ...7198F4B714ABFC68).
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key -o /usr/share/keyrings/jenkins-keyring.asc
 echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
   > /etc/apt/sources.list.d/jenkins.list
 apt-get update -y
@@ -39,6 +40,6 @@ echo ">> node_exporter"
 "$DIR/install-node-exporter.sh"
 
 echo
-echo "Listo. Contraseña inicial de Jenkins:"
-cat /var/lib/jenkins/secrets/initialAdminPassword || true
+echo "Listo. La contraseña inicial de Jenkins NO se imprime aquí (para que no quede en logs)."
+echo "Léela a mano con:  sudo cat /var/lib/jenkins/secrets/initialAdminPassword"
 echo "Siguiente paso: docs/runbook.md (SonarQube, Jenkins, monitoreo)."
