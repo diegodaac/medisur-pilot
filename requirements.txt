@@ -1,3 +1,6 @@
-fastapi==0.115.6
+fastapi==0.128.0
+# starlette fijada >= 0.49.1 por CVE-2025-62727 (DoS por cabecera Range), detectado por Trivy.
+starlette==0.50.0
+pydantic==2.14.4
 uvicorn==0.34.0
 prometheus_client==0.21.1
