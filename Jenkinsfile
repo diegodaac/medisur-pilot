@@ -33,7 +33,7 @@ pipeline {
 
   environment {
     // --- AJUSTAR antes del primer build (no son secretos) ---
-    GHCR_OWNER = 'REEMPLAZAR_USUARIO_GITHUB'        // en minúsculas
+    GHCR_OWNER = 'diegodaac'                        // usuario de GitHub, en minúsculas
     K8S_HOST   = '172.16.0.4'                       // IP privada de VM-K8S (misma VNet que VM-TOOLS)
     // --------------------------------------------------------
     IMAGE_REPO = "ghcr.io/${GHCR_OWNER}/medisur-pilot"
