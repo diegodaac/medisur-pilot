@@ -8,7 +8,7 @@ set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "Ejecutar con sudo"; exit 1; }
 PRIVATE_IP="${1:?Uso: sudo $0 <IP_PRIVADA_VM_K8S>}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
-KSM_VERSION="v2.14.0"
+KSM_VERSION="v2.19.1"   # compatible con Kubernetes 1.35 (matriz oficial de kube-state-metrics)
 KUBECTL="microk8s kubectl"
 CSR=/var/snap/microk8s/current/certs/csr.conf.template
 CRT=/var/snap/microk8s/current/certs/server.crt
