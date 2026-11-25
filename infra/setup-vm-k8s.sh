@@ -11,12 +11,14 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 KSM_VERSION="v2.14.0"
 KUBECTL="microk8s kubectl"
 CSR=/var/snap/microk8s/current/certs/csr.conf.template
+CRT=/var/snap/microk8s/current/certs/server.crt
 
 echo ">> Verificando MicroK8s"
 microk8s status --wait-ready >/dev/null
 
 echo ">> El certificado del API server debe incluir la IP privada ${PRIVATE_IP}"
-if ! grep -q "=[[:space:]]*${PRIVATE_IP}\$" "$CSR"; then
+# Se revisa el certificado REAL (MicroK8s agrega solo las IPs de sus interfaces).
+if ! openssl x509 -in "$CRT" -noout -ext subjectAltName | grep -q "IP Address:${PRIVATE_IP}\b"; then
   NEXT=$(( $(grep -cE '^IP\.[0-9]+' "$CSR") + 1 ))
   echo "IP.${NEXT} = ${PRIVATE_IP}" >> "$CSR"
   echo "   agregada al template; regenerando certificado del servidor"

@@ -34,7 +34,7 @@ pipeline {
   environment {
     // --- AJUSTAR antes del primer build (no son secretos) ---
     GHCR_OWNER = 'REEMPLAZAR_USUARIO_GITHUB'        // en minúsculas
-    K8S_HOST   = 'REEMPLAZAR_IP_PRIVADA_VM_K8S'     // IP privada de VM-K8S
+    K8S_HOST   = '172.16.0.4'                       // IP privada de VM-K8S (misma VNet que VM-TOOLS)
     // --------------------------------------------------------
     IMAGE_REPO = "ghcr.io/${GHCR_OWNER}/medisur-pilot"
     NODE_PORT  = '30080'                            // nodePort del Service (k8s/service.yaml)

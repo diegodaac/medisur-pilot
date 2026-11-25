@@ -7,7 +7,7 @@ set -euo pipefail
 
 [ "$(id -u)" -eq 0 ] || { echo "Ejecutar con sudo"; exit 1; }
 DIR="$(cd "$(dirname "$0")" && pwd)"
-KUBECTL_VERSION="v1.31.4"
+KUBECTL_VERSION="v1.35.6"   # misma versión que MicroK8s en VM-K8S (política de desfase ±1)
 
 echo ">> Paquetes base, Java 17, Docker y jq"
 apt-get update -y

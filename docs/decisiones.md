@@ -13,6 +13,10 @@ Las decisiones base están en `CLAUDE.md`. Aquí se anotan las **desviaciones o 
 | `/metrics` | No se cuenta a sí mismo en `http_requests_total` | Evita inflar las peticiones por segundo con el scrape de Prometheus |
 | Prometheus y la IP de K8s | `prometheus.tpl.yml` con marcador `K8S_PRIVATE_IP`, renderizado al arrancar el contenedor desde `monitoring/.env` | Un solo archivo versionado, sin editar a mano ni ensuciar el árbol de git en la VM |
 | Secreto de la app | `APP_API_KEY` en el Secret `medisur-api-secret`, creado por Jenkins desde la credencial `medisur-api-key` | Demuestra el flujo de secretos (ConfigMap + Secret) sin versionar nada. La app no lo usa; es un piloto |
+| Tamaño de VM-TOOLS | `Standard_B4as_v2` (4 vCPU AMD, 16 GB) en lugar de B4ms | B4ms no está disponible para la suscripción en mexicocentral (restricción `Location`). B4as_v2 tiene los mismos recursos y es de la misma familia que VM-K8S. Con ella se usan los 6 vCPU de cuota regional |
+| VM-K8S | `Standard_B2as_v2` (2 vCPU, 8 GB), Ubuntu **24.04**, MicroK8s v1.35.6 | Es la VM reutilizada de LAB-03; sus recursos equivalen a B2ms. `kubectl` en VM-TOOLS se fija a v1.35.6 |
+| Autoapagado | Cron diario en VM-TOOLS (05:00 UTC = 23:00 Monterrey) que ejecuta `az vm deallocate` sobre `vm-microk8s` y luego `vm-tools`, autenticado con la **identidad administrada** de `vm-tools` (rol *Virtual Machine Contributor* solo sobre el grupo de recursos). Scripts: `infra/autoapagado.sh` e `infra/install-autoapagado.sh`. Limitación: si VM-TOOLS ya está apagada, no apaga VM-K8S | `Microsoft.DevTestLab/schedules` debe crearse en la región de la VM (`InvalidScheduleLocation`) y ese tipo de recurso no existe en `mexicocentral` (`LocationNotAvailableForResourceType`). `az vm auto-shutdown` además fallaba porque el grupo de recursos está en `centralus`, región no permitida |
+| NSG de VM-K8S | La regla `SSH` estaba abierta a `*` desde LAB-03; se restringió a la IP de Diego | Cumplir la regla del NSG |
 | Extras (Hadolint, Trivy, gitleaks) | No incluidos en el `Jenkinsfile` | Se agregan al final solo si sobra tiempo (fase 7) |
 
 ## Limitaciones conocidas (para mencionar en el documento)

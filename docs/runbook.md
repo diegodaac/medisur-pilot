@@ -67,6 +67,7 @@ python3 monitoring/tools/gen_dashboards.py
 ```
 
 ## Cierre
-- `az vm deallocate` en ambas VMs desde el portal/CLI.
+- `az vm deallocate` en ambas VMs desde el portal/CLI. El cron de VM-TOOLS las apaga a las 23:00 (Monterrey) solo si VM-TOOLS sigue encendida.
+- Si una demo o sesión de trabajo va a pasar de las 23:00: `sudo chmod -x /usr/local/bin/medisur-autoapagado` en VM-TOOLS y, al terminar, `sudo chmod +x` de nuevo.
 - Al terminar el curso: borrar el grupo de recursos.
 - Si algún secreto llegara a filtrarse: **rotarlo** y anotarlo en `docs/AI_LOG.md` / `docs/decisiones.md`.
