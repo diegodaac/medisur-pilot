@@ -1,0 +1,42 @@
+# ServiceAccount de SOLO LECTURA para que Prometheus (VM-TOOLS) descubra pods/nodos
+# y haga scrape a través del proxy del API server. Se aplica una vez, al instalar
+# herramientas. El token lo genera el clúster; nunca se versiona.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-reader
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-reader
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/metrics", "nodes/proxy", "pods", "pods/proxy", "services", "endpoints", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-reader
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-reader
+    namespace: kube-system
+---
+# Token de larga duración (los de `kubectl create token` caducan).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-reader-token
+  namespace: kube-system
+  annotations:
+    kubernetes.io/service-account.name: prometheus-reader
+type: kubernetes.io/service-account-token

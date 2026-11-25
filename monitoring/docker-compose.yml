@@ -1,0 +1,75 @@
+# Stack de monitoreo en VM-TOOLS (Prometheus NO va dentro del clúster).
+#
+# Antes de levantarlo (desde esta carpeta):
+#   cp env.example .env                           # y editar valores
+#   cp alertmanager.example.yml alertmanager.yml  # y poner el webhook de Discord
+#   mkdir -p secrets                              # token y CA del ServiceAccount (ver docs/runbook.md)
+#   docker compose up -d
+name: monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    restart: unless-stopped
+    environment:
+      K8S_PRIVATE_IP: ${K8S_PRIVATE_IP:?define K8S_PRIVATE_IP en monitoring/.env}
+    # Se renderiza la plantilla (sustituye la IP privada de VM-K8S) y se arranca Prometheus.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        sed "s/K8S_PRIVATE_IP/$${K8S_PRIVATE_IP}/g" /etc/prometheus/prometheus.tpl.yml > /prometheus/prometheus.yml &&
+        exec /bin/prometheus
+        --config.file=/prometheus/prometheus.yml
+        --storage.tsdb.path=/prometheus
+        --storage.tsdb.retention.time=15d
+        --web.enable-lifecycle
+    volumes:
+      - ./prometheus.tpl.yml:/etc/prometheus/prometheus.tpl.yml:ro
+      - ./rules:/etc/prometheus/rules:ro
+      - ./secrets:/etc/prometheus/secrets:ro
+      - prometheus-data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "9090:9090"
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    restart: unless-stopped
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - ./blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?define GRAFANA_ADMIN_PASSWORD en monitoring/.env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:

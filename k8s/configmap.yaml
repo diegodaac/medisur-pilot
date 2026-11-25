@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: medisur-api-config
+  namespace: medisur
+data:
+  PORT: "8000"
+  LOG_LEVEL: "INFO"
+  # Segundos que /ready responde 503 tras arrancar: hace visible la
+  # actualización gradual (RollingUpdate) durante la demo.
+  READY_DELAY_SECONDS: "10"
+  SERVICE_NAME: "medisur-api"

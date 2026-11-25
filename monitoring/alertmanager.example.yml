@@ -1,0 +1,20 @@
+# EJEMPLO. Copiar a monitoring/alertmanager.yml (ignorado por git) y poner el
+# webhook real de Discord a mano. NUNCA versionar el webhook.
+#
+#   cp alertmanager.example.yml alertmanager.yml
+#   nano alertmanager.yml     # reemplazar REEMPLAZAR_WEBHOOK_DISCORD
+#
+# Requiere Alertmanager >= 0.28 (discord_configs).
+
+route:
+  receiver: discord
+  group_by: [alertname, instance]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 2h
+
+receivers:
+  - name: discord
+    discord_configs:
+      - webhook_url: "REEMPLAZAR_WEBHOOK_DISCORD"
+        send_resolved: true

@@ -1,0 +1,23 @@
+# Secretos: NUNCA versionar (ver CLAUDE.md)
+kubeconfig*
+*.env
+.env*
+alertmanager.yml
+secrets/
+
+# Cobertura y caches de Python
+coverage.xml
+htmlcov/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+junit.xml
+.venv/
+venv/
+
+# Sonar y editores
+.scannerwork/
+.idea/
+.vscode/
+.DS_Store

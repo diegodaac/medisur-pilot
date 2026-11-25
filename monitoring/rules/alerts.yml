@@ -1,0 +1,44 @@
+groups:
+  - name: medisur-alertas
+    rules:
+      # 1) Disco por encima de 80 % en cualquier VM.
+      - alert: DiscoLleno
+        expr: |
+          100 - (
+            node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+            / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"} * 100
+          ) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disco al {{ $value | printf \"%.0f\" }} % en {{ $labels.vm }}"
+          description: "El sistema de archivos / de {{ $labels.instance }} supera 80 % de uso."
+
+      # 2) Pods de la app reiniciándose en bucle (más de 3 reinicios en 10 min).
+      - alert: PodReiniciandose
+        expr: increase(kube_pod_container_status_restarts_total{namespace="medisur"}[10m]) > 3
+        labels:
+          severity: critical
+        annotations:
+          summary: "El pod {{ $labels.pod }} se reinició más de 3 veces en 10 min"
+          description: "Contenedor {{ $labels.container }} en el namespace medisur."
+
+      # 3) Réplicas disponibles por debajo de las deseadas durante 5 minutos.
+      - alert: ReplicasNoDisponibles
+        expr: kube_deployment_status_replicas_available{namespace="medisur"} < kube_deployment_spec_replicas{namespace="medisur"}
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} sin todas sus réplicas"
+          description: "Disponibles: {{ $value }}; revisar `kubectl -n medisur get pods`."
+
+      # Extra útil: un destino de scrape caído (sin esto, las otras alertas se quedarían mudas).
+      - alert: DestinoCaido
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus no puede leer {{ $labels.job }} ({{ $labels.instance }})"
