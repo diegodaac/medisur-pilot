@@ -101,7 +101,8 @@ pipeline {
     }
 
     // ---- 5. Quality Gate: si no pasa, el pipeline se aborta (build rojo) -----
-    // Requiere el webhook de SonarQube -> http://localhost:8080/sonarqube-webhook/
+    // Requiere el webhook de SonarQube -> http://172.16.0.5:8080/sonarqube-webhook/
+    // (IP privada de VM-TOOLS; "localhost" no sirve porque SonarQube corre en un contenedor).
     stage('Quality Gate') {
       steps {
         timeout(time: 5, unit: 'MINUTES') {

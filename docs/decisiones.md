@@ -19,7 +19,15 @@ Las decisiones base están en `CLAUDE.md`. Aquí se anotan las **desviaciones o 
 | NSG de VM-K8S | La regla `SSH` estaba abierta a `*` desde LAB-03; se restringió a la IP de Diego | Cumplir la regla del NSG |
 | Extras (Hadolint, Trivy, gitleaks) | No incluidos en el `Jenkinsfile` | Se agregan al final solo si sobra tiempo (fase 7) |
 
+## Incidentes de secretos (rotación)
+
+| Fecha | Secreto | Qué pasó | Acción |
+|---|---|---|---|
+| 2026-11-25 | Token de usuario de SonarQube `jenkins` | Se pegó por error en el chat con el asistente de IA (nunca llegó al repositorio) | Revocado en SonarQube (My Account → Security) y reemplazado por uno nuevo, que solo se introduce en la terminal (`read -rs`) y en Jenkins Credentials |
+
 ## Limitaciones conocidas (para mencionar en el documento)
+
+- SonarQube fijado en **10.7.0 Community**, que ya no tiene soporte ("no longer active"). Se mantuvo a propósito para la entrega: las versiones Community Build más recientes cambian el modo de calificación (MQR) y los nombres de las métricas, lo que pondría en riesgo el Quality Gate. En producción se actualizaría.
 
 - El estado de `/api/items` es en memoria y **por réplica** (cada pod tiene el suyo) y se pierde al reiniciar.
 - SonarQube Community analiza una sola rama: cada análisis sobrescribe el anterior; el Quality Gate propio evalúa el código total.
