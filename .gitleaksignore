@@ -4,8 +4,6 @@
 # en tiempo de ejecución; no hay ningún valor escrito en el archivo ni en el historial.
 # (No se cita aquí la línea exacta: el propio comentario dispararía la regla.)
 # Formato: <commit>:<archivo>:<regla>:<línea>
-ed5f6b1ffdb2cbc13849afc7cbf59532b4d97ea6:infra/sonar-quality-gate.sh:curl-auth-user:17
-f2ad68ed9127e4e6686df290717df0f88a9d9e83:infra/sonar-quality-gate.sh:curl-auth-user:21
-# La primera versión de este mismo archivo citaba la línea en un comentario y gitleaks
-# la detectó (texto explicativo, no un secreto). Se corrigió en el commit siguiente.
-d68fae9b97c17d2fbf63e076a3c6529f9bc52a4b:.gitleaksignore:curl-auth-user:2
+# Los SHA corresponden al historial reescrito el 2026-11-25 (ver docs/historial-reescrito.md).
+f120d23ab24e01fbd8cf4394b58dc544e864cdb2:infra/sonar-quality-gate.sh:curl-auth-user:17
+c83f69f17a9d3005a8f204ccd3a7901002f7ccf5:infra/sonar-quality-gate.sh:curl-auth-user:21
