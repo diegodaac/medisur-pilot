@@ -38,7 +38,11 @@ ENV APP_VERSION=${APP_VERSION} \
     PYTHONUNBUFFERED=1 \
     PORT=8000
 
+# image.source enlaza el paquete de GHCR con el repositorio (aparece en "Packages" del repo).
 LABEL org.opencontainers.image.title="medisur-pilot" \
+      org.opencontainers.image.description="API piloto de MediSur para el trabajo final de Cómputo en la Nube (UANL FCFM)" \
+      org.opencontainers.image.source="https://github.com/diegodaac/medisur-pilot" \
+      org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${GIT_SHA}" \
       org.opencontainers.image.created="${BUILD_DATE}"
