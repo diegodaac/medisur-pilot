@@ -27,7 +27,7 @@ scrape_configs:
 
   # ---- Jenkins (plugin Prometheus -> /prometheus) ----
   - job_name: jenkins
-    metrics_path: /prometheus
+    metrics_path: /prometheus/    # con barra final: sin ella Jenkins responde con una redirección 302
     static_configs:
       - targets: ["host.docker.internal:8080"]
 
