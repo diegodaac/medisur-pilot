@@ -21,3 +21,6 @@ venv/
 .idea/
 .vscode/
 .DS_Store
+
+# Entregables binarios (Word, video): se entregan aparte, no se versionan
+entrega/
