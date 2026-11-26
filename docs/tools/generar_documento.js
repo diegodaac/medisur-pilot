@@ -375,12 +375,12 @@ limitaciones.forEach((t) => children.push(bullet(md(t))));
 
 // 11. Costos
 children.push(H1("10. Control de costos"));
-children.push(P("Consumo real del crédito de Azure for Students (100 USD), consultado con la API de Cost Management. Azure publica el consumo con un retraso de hasta 24 horas, así que **actualiza esta tabla con la cifra del portal justo antes de entregar**."));
+children.push(P("Consumo real del crédito de Azure for Students (100 USD) en lo que va de noviembre, consultado con la API de Cost Management el 25 de noviembre de 2026 por la noche. Azure publica el consumo con un retraso de hasta 24 horas, así que la cifra del portal puede ser unos centavos mayor."));
 children.push(tabla(["Concepto", "Grupo de recursos", "Costo (USD)"], [
-  ["Almacenamiento (discos)", "rg-lab03-k8s", "2.18"],
-  ["Red virtual e IP públicas", "rg-lab03-k8s", "2.97"],
-  ["Cómputo de las VMs", "rg-lab03-k8s", "[pendiente de reflejarse]"],
-  ["Total del mes al 25-nov-2026", "", "5.15 + cómputo"],
+  ["Almacenamiento (discos)", "rg-lab03-k8s", "2.32"],
+  ["Red virtual e IP públicas", "rg-lab03-k8s", "3.02"],
+  ["Cómputo de las VMs", "rg-lab03-k8s", "0.90"],
+  ["Total del mes al 25-nov-2026", "", "6.24"],
 ], [4000, 2800, 2560], 18));
 children.push(espacio());
 children.push(P("**Controles aplicados:**"));
