@@ -166,7 +166,7 @@ children.push(
 const portada = [
   ["Materia", "Cómputo en la Nube"],
   ["Integrante y rol", "Diego Alejandro Alvarado Castañón — trabajo individual: arquitectura, infraestructura en Azure, pipeline CI/CD, Kubernetes, monitoreo y documentación"],
-  ["Profesor", "[Nombre del profesor]"],
+  ["Profesor", "Jorge Alberto Islas Pineda"],
   ["Repositorio", "https://github.com/diegodaac/medisur-pilot"],
   ["Fecha", "25 de noviembre de 2026"],
 ];
