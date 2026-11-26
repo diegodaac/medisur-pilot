@@ -16,7 +16,7 @@
 | NSG VM-TOOLS | `diego-admin` (22, 8080, 9000, 3000, 9090 desde la IP de Diego); `github-hooks-jenkins` (8080 desde rangos `hooks` IPv4 de GitHub) |
 | NSG VM-K8S | `SSH` restringida a la IP de Diego (estaba abierta a `*`); `PermitirAPIKubernetes` 16443; `PermitirAppNodePort` 30080; `ExportersDesdeTools` 9100 y 30808 desde 172.16.0.5 |
 | Autoapagado | Cron en VM-TOOLS a las 05:00 UTC (`/etc/cron.d/medisur-autoapagado`) con identidad administrada de `vm-tools` y rol *Virtual Machine Contributor* sobre el RG. Bitácora: `/var/log/medisur-autoapagado.log` |
-| Presupuesto | Pendiente, en el portal |
+| Presupuesto | `medisur-50usd`: 50 USD mensuales sobre la suscripción, con avisos por correo al 80 % y 100 % del gasto real y al 100 % del pronóstico (creado con `az rest`, ver abajo) |
 
 Comandos realmente usados donde difieren de las plantillas de abajo:
 
@@ -42,6 +42,17 @@ PID=$(az vm identity assign -g RG-LAB03-K8S -n vm-tools --query systemAssignedId
 az role assignment create --assignee-object-id "$PID" --assignee-principal-type ServicePrincipal \
   --role "Virtual Machine Contributor" --scope "$(az group show -n RG-LAB03-K8S --query id -o tsv)"
 # En VM-TOOLS:  sudo ./infra/install-autoapagado.sh   (instala az CLI, el script y el cron; prueba sin apagar)
+
+# Presupuesto de 50 USD con avisos (az consumption budget create no admite notificaciones; se usa la API).
+SUB=$(az account show --query id -o tsv); MAIL=$(az account show --query user.name -o tsv)
+az rest --method put \
+  --url "https://management.azure.com/subscriptions/$SUB/providers/Microsoft.Consumption/budgets/medisur-50usd?api-version=2023-05-01" \
+  --body "{\"properties\":{\"category\":\"Cost\",\"amount\":50,\"timeGrain\":\"Monthly\",
+    \"timePeriod\":{\"startDate\":\"2026-11-01T00:00:00Z\",\"endDate\":\"2027-11-01T00:00:00Z\"},
+    \"notifications\":{
+      \"Real80\":{\"enabled\":true,\"operator\":\"GreaterThan\",\"threshold\":80,\"thresholdType\":\"Actual\",\"contactEmails\":[\"$MAIL\"]},
+      \"Real100\":{\"enabled\":true,\"operator\":\"GreaterThan\",\"threshold\":100,\"thresholdType\":\"Actual\",\"contactEmails\":[\"$MAIL\"]},
+      \"Pronostico100\":{\"enabled\":true,\"operator\":\"GreaterThan\",\"threshold\":100,\"thresholdType\":\"Forecasted\",\"contactEmails\":[\"$MAIL\"]}}}}"
 ```
 
 ## 0. Variables

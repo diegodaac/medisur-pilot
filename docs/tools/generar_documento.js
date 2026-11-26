@@ -39,7 +39,7 @@ const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [ne
 const H1b = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)] });
 const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(t)] });
 const bullet = (t) => new Paragraph({ numbering: { reference: "vinetas", level: 0 }, children: runs(t), spacing: { after: 60, line: 264 } });
-const numero = (t) => new Paragraph({ numbering: { reference: "numeros", level: 0 }, children: runs(t), spacing: { after: 60, line: 264 } });
+const numero = (t) => new Paragraph({ numbering: { reference: "numeros", level: 0 }, children: runs(t), spacing: { after: 30, line: 252 } });
 
 const borde = { style: BorderStyle.SINGLE, size: 4, color: C.borde };
 const bordes = { top: borde, bottom: borde, left: borde, right: borde };
@@ -94,8 +94,8 @@ function captura(num, desc) {
     const buf = fs.readFileSync(path.join(DIR_CAPTURAS, archivo));
     const tipo = /\.png$/i.test(archivo) ? "png" : "jpg";
     const { w, h } = dimensiones(buf, tipo);
-    // 440 px de ancho: legible y caben unas dos capturas por página (extensión sugerida 15-25 págs.).
-    const ancho = Math.min(440, w), alto = Math.round(ancho * h / w);
+    // 420 px de ancho: legible y caben unas dos capturas por página (extensión sugerida 15-25 págs.).
+    const ancho = Math.min(420, w), alto = Math.round(ancho * h / w);
     const escala = alto > 420 ? 420 / alto : 1;   // capturas muy altas (p. ej. Prometheus) se acotan
     figura += 1;
     return [
@@ -121,7 +121,7 @@ function codigo(texto, tam = 14) {
   return texto.replace(/\t/g, "  ").split("\n").map((l, i, arr) => new Paragraph({
     children: [new TextRun({ text: l.length ? l : " ", font: "Consolas", size: tam })],
     shading: { fill: C.gris, type: ShadingType.CLEAR, color: "auto" },
-    spacing: { after: 0, line: 220 },
+    spacing: { after: 0, line: 190 },
     keepLines: true,
   }));
 }
@@ -299,7 +299,7 @@ children.push(espacio());
 children.push(P("**Credenciales.** Ninguna vive en el repositorio. Jenkins Credentials guarda `sonar-token` (Secret text), `ghcr-pat` (usuario y PAT con write:packages), `medisur-api-key` (Secret text) y `kubeconfig-k8s` (Secret file, apuntando a la IP privada de VM-K8S con TLS verificado). Los bloques `sh` con secretos usan comillas simples para que Groovy no los interpole y Jenkins los enmascare en el log."));
 children.push(P("**Protección de la rama main.** GitHub exige Pull Request y el check `continuous-integration/jenkins/pr-head` en verde para fusionar, y bloquea el force-push y el borrado de la rama. Un PR con el Quality Gate en rojo no se puede fusionar."));
 children.push(H2("Jenkinsfile comentado (versión entregada)"));
-children.push(...codigo(jenkinsfile, 13));
+children.push(...codigo(jenkinsfile, 12));
 
 // 7. Monitoreo
 children.push(H1("6. Monitoreo"));
@@ -412,7 +412,6 @@ children.push(H1("12. Anexos"));
 children.push(H2("Enlaces"));
 children.push(new Paragraph({ children: [new TextRun({ text: "Repositorio: ", bold: true }), new ExternalHyperlink({ link: "https://github.com/diegodaac/medisur-pilot", children: [new TextRun({ text: "https://github.com/diegodaac/medisur-pilot", style: "Hyperlink" })] })], spacing: { after: 80 } }));
 children.push(new Paragraph({ children: [new TextRun({ text: "Video de respaldo (10 a 15 min): ", bold: true }), new TextRun({ text: "[pegar aquí el enlace al video]", color: "7A5C00", highlight: "yellow" })], spacing: { after: 80 } }));
-children.push(new Paragraph({ children: [new TextRun({ text: "Imágenes: ", bold: true }), new TextRun("ghcr.io/diegodaac/medisur-pilot")], spacing: { after: 200 } }));
 children.push(H2("Referencias"));
 [
   "Enunciado del trabajo final: wiki del curso Cómputo en la Nube (github.com/jorgealbertopineda78-del/cloud-compute).",
@@ -424,8 +423,7 @@ children.push(H2("Referencias"));
   "Prometheus y Alertmanager: configuración y discord_configs. https://prometheus.io/docs/",
   "Grafana: provisionamiento de tableros. https://grafana.com/docs/grafana/latest/administration/provisioning/",
   "GitHub. Working with the Container registry. https://docs.github.com/packages",
-  "Aqua Security Trivy, Gitleaks y Hadolint: documentación oficial de cada proyecto.",
-  "Microsoft. Azure Cost Management y identidades administradas. https://learn.microsoft.com/azure/",
+  "Documentación oficial de Trivy, Gitleaks, Hadolint y Microsoft Azure (Cost Management, identidades administradas: learn.microsoft.com/azure).",
 ].forEach((t) => children.push(numero(t)));
 
 const doc = new Document({
