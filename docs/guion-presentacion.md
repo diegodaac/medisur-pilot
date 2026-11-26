@@ -107,7 +107,7 @@ Puedo explicar cada línea del Jenkinsfile y de los manifiestos, porque cada pie
 ## 13. Control de costos
 
 [21:30 – 22:00]
-En costos: llevo 5.15 dólares consumidos del crédito de 100; el cómputo de las VMs aparece en Azure con hasta un día de retraso.
+En costos: llevo 6.24 dólares consumidos del crédito de 100 en todo noviembre, contando discos, red y el cómputo de las dos VMs.
 Hay un presupuesto de 50 dólares con avisos al 80 y al 100 por ciento y por pronóstico. Las VMs se apagan cada noche a las 23:00 con deallocate; como el autoapagado nativo de Azure no existe en mexicocentral, lo implementé con un cron en VM-TOOLS que usa una identidad administrada con permisos solo sobre el grupo de recursos. Al terminar el curso borro todo el grupo.
 
 ## 14. Lo que me llevo y preguntas

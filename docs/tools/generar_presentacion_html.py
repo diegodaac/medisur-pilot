@@ -199,8 +199,8 @@ slide("""
 slide("""
 <h2>Control de costos</h2>
 <div class="dos costos">
-  <div><p class="cifra">5.15 USD</p>
-    <p class="gris">consumidos del crédito de 100 USD de Azure for Students al 25 de noviembre (el cómputo de las VMs se refleja con retraso).</p></div>
+  <div><p class="cifra">6.24 USD</p>
+    <p class="gris">consumidos del crédito de 100 USD de Azure for Students en noviembre, al día 25: discos, red y cómputo de las dos VMs.</p></div>
   <div><p>Presupuesto de 50 USD con avisos al 80 %, 100 % y por pronóstico.</p>
     <p>Apagado diario a las 23:00 con deallocate. El nativo de Azure no existe en mexicocentral: lo hace un cron con identidad administrada.</p>
     <p>Prometheus con retención de 15 días; tamaños B y discos StandardSSD.</p>

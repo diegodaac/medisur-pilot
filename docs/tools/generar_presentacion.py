@@ -471,8 +471,8 @@ Puedo explicar cada línea del Jenkinsfile y de los manifiestos, porque cada pie
 s = nueva()
 titulo(s, "Control de costos")
 texto(s, 0.75, 1.75, 5.5, 3.0, [
-    ("5.15 USD", {"tam": 80, "negrita": True, "fuente": TITULO, "color": VERDE, "despues": 0, "interlineado": 0.9}),
-    ("consumidos del crédito de 100 USD de Azure for Students al 25 de noviembre (el cómputo de las VMs se refleja con retraso).", {"tam": 17, "color": GRIS}),
+    ("6.24 USD", {"tam": 80, "negrita": True, "fuente": TITULO, "color": VERDE, "despues": 0, "interlineado": 0.9}),
+    ("consumidos del crédito de 100 USD de Azure for Students en noviembre, al día 25: discos, red y cómputo de las dos VMs.", {"tam": 17, "color": GRIS}),
 ], tam=17)
 texto(s, 7.0, 1.95, 5.6, 4.5, [
     ("Presupuesto de 50 USD con avisos al 80 %, 100 % y por pronóstico.", {"despues": 12}),
@@ -483,7 +483,7 @@ texto(s, 7.0, 1.95, 5.6, 4.5, [
 linea_de_seccion(s, "IA y costos")
 notas(s, """
 [21:30 – 22:00]
-En costos: llevo 5.15 dólares consumidos del crédito de 100; el cómputo de las VMs aparece en Azure con hasta un día de retraso.
+En costos: llevo 6.24 dólares consumidos del crédito de 100 en todo noviembre, contando discos, red y el cómputo de las dos VMs.
 Hay un presupuesto de 50 dólares con avisos al 80 y al 100 por ciento y por pronóstico. Las VMs se apagan cada noche a las 23:00 con deallocate; como el autoapagado nativo de Azure no existe en mexicocentral, lo implementé con un cron en VM-TOOLS que usa una identidad administrada con permisos solo sobre el grupo de recursos. Al terminar el curso borro todo el grupo.
 """)
 
