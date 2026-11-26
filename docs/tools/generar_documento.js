@@ -72,7 +72,35 @@ function tabla(encabezados, filas, anchos, tam = 17) {
 const espacio = () => new Paragraph({ children: [], spacing: { after: 120 } });
 const pie = (t) => new Paragraph({ children: [new TextRun({ text: t, italics: true, size: 18, color: "555555" })], alignment: AlignmentType.CENTER, spacing: { before: 60, after: 200 } });
 
+// Busca en entrega/capturas/ un PNG o JPG que empiece con "<num>-" (p. ej. 08-pods.png).
+// Si existe, lo inserta con su pie de figura; si no, deja el recuadro amarillo.
+const DIR_CAPTURAS = path.join(REPO, "entrega", "capturas");
+let figura = 1; // la Figura 1 es el diagrama de arquitectura
+function dimensiones(buf, tipo) {
+  if (tipo === "png") return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  for (let i = 2; i < buf.length;) {           // JPEG: busca el marcador SOFn
+    const marca = buf[i + 1], largo = buf.readUInt16BE(i + 2);
+    if (marca >= 0xc0 && marca <= 0xc3) return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+    i += 2 + largo;
+  }
+  return { w: 1600, h: 900 };
+}
 function captura(num, desc) {
+  const archivo = fs.existsSync(DIR_CAPTURAS)
+    ? fs.readdirSync(DIR_CAPTURAS).sort().find((f) => f.toLowerCase().startsWith(`${num.toLowerCase()}-`) && /\.(png|jpe?g)$/i.test(f))
+    : undefined;
+  if (archivo) {
+    const buf = fs.readFileSync(path.join(DIR_CAPTURAS, archivo));
+    const tipo = /\.png$/i.test(archivo) ? "png" : "jpg";
+    const { w, h } = dimensiones(buf, tipo);
+    const ancho = Math.min(600, w), alto = Math.round(ancho * h / w);
+    const escala = alto > 760 ? 760 / alto : 1;   // que quepa en una página carta
+    figura += 1;
+    return [
+      new Paragraph({ children: [new ImageRun({ type: tipo, data: buf, transformation: { width: Math.round(ancho * escala), height: Math.round(alto * escala) } })], alignment: AlignmentType.CENTER, spacing: { before: 160 }, keepNext: true }),
+      pie(`Figura ${figura} (captura ${num}). ${desc}.`),
+    ];
+  }
   // Devuelve [espaciador, recuadro]: el espaciador evita que Word fusione los
   // bordes de dos recuadros seguidos en uno solo.
   return [new Paragraph({ children: [], spacing: { after: 0 } }), new Paragraph({
@@ -317,15 +345,18 @@ children.push(H1("8. Evidencias"));
 children.push(P("Capturas del funcionamiento real. Cada build está identificado por su número en Jenkins y por el SHA del commit."));
 [
   ["04", "Pipeline en rojo detenido por el Quality Gate (PR #4, cobertura 30.2 %): las etapas de imagen y despliegue aparecen saltadas"],
-  ["05", "SonarQube: Quality Gate MediSur en Failed por cobertura"],
-  ["06", "Pipeline en verde completo en main (CI + CD)"],
+  ["04b", "GitHub: el PR #4 con el check de Jenkins en rojo; la protección de main impide fusionarlo"],
+  ["05", "SonarQube: historial del proyecto con el Quality Gate MediSur en Failed por cobertura"],
+  ["06", "Pipeline en verde completo en main (CI + CD), disparado por el merge"],
   ["07", "Paquete en GHCR con las etiquetas <VERSION>-<sha> y <sha>, sin latest"],
-  ["08", "kubectl get pods -n medisur con 2 réplicas 1/1 Running"],
-  ["09", "curl http://<IP-VM-K8S>:30080/version con el SHA desplegado"],
-  ["10", "kubectl get pods -w durante la actualización gradual"],
-  ["16", "kubectl rollout undo y /version con la versión anterior"],
-  ["17", "El Jenkinsfile en GitHub y la protección de main con el check obligatorio"],
+  ["08", "kubectl get pods y get deployment desde la laptop: 2 réplicas 1/1 Running con la imagen 1.0.0-3b5f159"],
+  ["09", "curl a /version y /health desde la laptop, e historial de revisiones del Deployment con su build de Jenkins"],
+  ["10", "kubectl get pods -w durante una actualización gradual: cada pod nuevo pasa por 0/1 (retardo de /ready) antes de retirar uno viejo"],
+  ["16", "kubectl rollout undo: /version pasa de 3b5f159 a la versión anterior 9149ea9"],
+  ["17", "El Jenkinsfile versionado en el repositorio (el pipeline no está configurado a clics)"],
+  ["17b", "Protección de la rama main: Pull Request y check de Jenkins obligatorios"],
 ].forEach(([n, d]) => children.push(...captura(n, d)));
+children.push(P("Las capturas de terminal (08, 09, 10 y 16) muestran la salida real de los comandos ejecutados desde la laptop con un kubeconfig local, sin SSH al clúster."));
 
 // 10. Decisiones
 children.push(H1("9. Decisiones de diseño"));
