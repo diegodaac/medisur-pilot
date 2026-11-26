@@ -34,7 +34,8 @@ function runs(texto, base = {}) {
   return out;
 }
 const P = (texto, opts = {}) => new Paragraph({ children: runs(texto, opts.run || {}), spacing: { after: 120, line: 276 }, alignment: opts.align || AlignmentType.JUSTIFIED, ...opts.p });
-const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)], pageBreakBefore: true });
+// Las secciones no fuerzan hoja nueva (evita medias páginas vacías); solo la primera tras el índice.
+const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)], pageBreakBefore: t.startsWith("1. "), spacing: { before: 360, after: 160 } });
 const H1b = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(t)] });
 const H2 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(t)] });
 const bullet = (t) => new Paragraph({ numbering: { reference: "vinetas", level: 0 }, children: runs(t), spacing: { after: 60, line: 264 } });
@@ -93,8 +94,9 @@ function captura(num, desc) {
     const buf = fs.readFileSync(path.join(DIR_CAPTURAS, archivo));
     const tipo = /\.png$/i.test(archivo) ? "png" : "jpg";
     const { w, h } = dimensiones(buf, tipo);
-    const ancho = Math.min(600, w), alto = Math.round(ancho * h / w);
-    const escala = alto > 760 ? 760 / alto : 1;   // que quepa en una página carta
+    // 440 px de ancho: legible y caben unas dos capturas por página (extensión sugerida 15-25 págs.).
+    const ancho = Math.min(440, w), alto = Math.round(ancho * h / w);
+    const escala = alto > 420 ? 420 / alto : 1;   // capturas muy altas (p. ej. Prometheus) se acotan
     figura += 1;
     return [
       new Paragraph({ children: [new ImageRun({ type: tipo, data: buf, transformation: { width: Math.round(ancho * escala), height: Math.round(alto * escala) } })], alignment: AlignmentType.CENTER, spacing: { before: 160 }, keepNext: true }),
@@ -319,7 +321,9 @@ children.push(...captura("11", "Tablero Infraestructura con datos reales de VM-T
 children.push(H2("Tablero 2: Aplicación"));
 children.push(P("Versión desplegada (etiqueta de `app_info`), réplicas listas contra deseadas, tasa de errores 5xx, peticiones por segundo por endpoint, latencia p95, CPU y memoria por pod y reinicios de contenedor."));
 children.push(...captura("12", "Tablero Aplicación con datos reales"));
-children.push(...captura("13", "Tablero Aplicación durante la eliminación de un pod y su recuperación"));
+children.push(P("**Experimento de caos (prueba de autocuración y de alertas).** Entre las 18:55 y las 19:07 se detuvo repetidamente el proceso de uno de los pods, cada vez que intentaba arrancar (`infra/probar-alertas.sh`). Las gráficas muestran cómo lo vivió el sistema: las réplicas listas bajaron de 2 a 1 mientras el otro pod siguió atendiendo, los reinicios subieron de 0 a 7 y, al terminar el experimento, Kubernetes recuperó el pod sin intervención humana."));
+children.push(...captura("13", "Réplicas listas contra deseadas durante el experimento de caos: 2 → 1 → 2"));
+children.push(...captura("13b", "Reinicios acumulados del contenedor durante el experimento de caos"));
 children.push(H2("Alertas"));
 const filasAl = [
   ["DiscoLleno", "Uso de / > 80 % en cualquier VM", "2 min", "warning"],
@@ -329,7 +333,9 @@ const filasAl = [
 ];
 children.push(tabla(["Alerta", "Condición", "Durante", "Severidad"], filasAl, [2200, 4760, 1000, 1400], 16));
 children.push(P("Alertmanager agrupa por alerta e instancia y notifica a un canal de Discord, incluidos los avisos de resolución. El webhook de Discord vive solo en `monitoring/alertmanager.yml` en la VM (ignorado por git); el repositorio contiene únicamente `alertmanager.example.yml`."));
-children.push(...captura("15", "Las tres alertas recibidas en Discord"));
+children.push(P("Las tres alertas se probaron con fallas controladas, sin tocar el despliegue: un archivo temporal llevó el disco de VM-TOOLS al 85 % (DiscoLleno) y el experimento de caos provocó más de 3 reinicios en 10 minutos (PodReiniciandose) y 5 minutos con una sola réplica lista (ReplicasNoDisponibles). Alertmanager envió 6 notificaciones a Discord, sin fallos, incluidas las de resolución."));
+children.push(...captura("15", "Notificaciones de Alertmanager en el canal de Discord (prueba de conexión y PodReiniciandose; las demás siguen en el canal)"));
+children.push(...captura("15b", "Grafana Explore: ALERTS{alertstate=\"firing\"} entre 18:50 y 19:30, con las cuatro alertas disparadas"));
 children.push(...captura("14", "Prometheus › Status › Targets con todos los destinos en UP"));
 
 // 8. IA
@@ -348,7 +354,7 @@ children.push(P("Capturas del funcionamiento real. Cada build está identificado
   ["04b", "GitHub: el PR #4 con el check de Jenkins en rojo; la protección de main impide fusionarlo"],
   ["05", "SonarQube: historial del proyecto con el Quality Gate MediSur en Failed por cobertura"],
   ["06", "Pipeline en verde completo en main (CI + CD), disparado por el merge"],
-  ["07", "Paquete en GHCR con las etiquetas <VERSION>-<sha> y <sha>, sin latest"],
+  ["07", "Paquete en GHCR con las etiquetas <VERSION>-<sha> y <sha>. La insignia gris \"Latest\" la muestra GitHub para la versión más reciente; no existe ninguna etiqueta latest"],
   ["08", "kubectl get pods y get deployment desde la laptop: 2 réplicas 1/1 Running con la imagen 1.0.0-3b5f159"],
   ["09", "curl a /version y /health desde la laptop, e historial de revisiones del Deployment con su build de Jenkins"],
   ["10", "kubectl get pods -w durante una actualización gradual: cada pod nuevo pasa por 0/1 (retardo de /ready) antes de retirar uno viejo"],
