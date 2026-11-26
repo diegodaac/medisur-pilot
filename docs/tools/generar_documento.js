@@ -411,7 +411,7 @@ children.push(H2("Trabajo futuro"));
 children.push(H1("12. Anexos"));
 children.push(H2("Enlaces"));
 children.push(new Paragraph({ children: [new TextRun({ text: "Repositorio: ", bold: true }), new ExternalHyperlink({ link: "https://github.com/diegodaac/medisur-pilot", children: [new TextRun({ text: "https://github.com/diegodaac/medisur-pilot", style: "Hyperlink" })] })], spacing: { after: 80 } }));
-children.push(new Paragraph({ children: [new TextRun({ text: "Video de respaldo (10 a 15 min): ", bold: true }), new TextRun({ text: "[pegar aquí el enlace al video]", color: "7A5C00", highlight: "yellow" })], spacing: { after: 80 } }));
+children.push(new Paragraph({ children: [new TextRun({ text: "Video de respaldo (10 a 15 min): ", bold: true }), new ExternalHyperlink({ link: "https://drive.google.com/drive/folders/1ptC4iqGVvJlXuTP0KPbmaxttYeOtgo51?usp=sharing", children: [new TextRun({ text: "https://drive.google.com/drive/folders/1ptC4iqGVvJlXuTP0KPbmaxttYeOtgo51?usp=sharing", style: "Hyperlink" })] })], spacing: { after: 80 } }));
 children.push(H2("Referencias"));
 [
   "Enunciado del trabajo final: wiki del curso Cómputo en la Nube (github.com/jorgealbertopineda78-del/cloud-compute).",
